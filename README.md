@@ -40,6 +40,9 @@ For Windows: `py -m pip install -r requirements.txt`<br>
 To run the app, run:<br>
 `uvicorn vindecode.main:app --reload`
 
+To run unit tests, run:<br>
+`pytest`
+
 ---
 
 # Using the API
