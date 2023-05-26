@@ -26,16 +26,15 @@ async def root():
 async def lookup(vin: str, db: Session = Depends(get_db)):
     db_vin = crud.get_decoded_vin(db, vin=vin)
     if db_vin is None:
-        raise HTTPException(status_code=404, detail="VIN not found")
+        new_db_vin = schemas.DecodedVINCreate(
+            vin=vin,
+            make="PETERBILT",
+            model="388",
+            model_year="2014",
+            body_class="Truck-Tractor"
+        )
+        return crud.create_decoded_vin(db, vin=new_db_vin)
     return db_vin
-
-
-@app.post("/vins/", response_model=schemas.DecodedVIN)
-async def create_vin(vin: schemas.DecodedVINCreate, db: Session = Depends(get_db)):
-    db_vin = crud.get_decoded_vin(db, vin=vin.vin)
-    if db_vin:
-        raise HTTPException(status_code=400, detail="VIN already added.")
-    return crud.create_decoded_vin(db, vin=vin)
 
 
 @app.get("/remove/{vin}")

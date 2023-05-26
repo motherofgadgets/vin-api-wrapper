@@ -43,24 +43,7 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
-def test_create_new_vin_success():
-    vin_data = {
-        "vin": "1XPWD40X1ED215307",
-        "make": "PETERBILT",
-        "model": "388",
-        "model_year": "2014",
-        "body_class": "Truck-Tractor"
-    }
-    response = client.post(
-        "/vins/",
-        json=vin_data
-    )
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert data == vin_data
-
-
-def test_lookup_success():
+def test_lookup_new_vin_success():
     vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 200, response.text
@@ -72,10 +55,16 @@ def test_lookup_success():
     assert data["body_class"] == "Truck-Tractor"
 
 
-def test_lookup_not_found():
-    vin = "1XKWDB0X57J211825"
+def test_lookup_cached_vin_success():
+    vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
-    assert response.status_code == 404
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["vin"] == "1XPWD40X1ED215307"
+    assert data["make"] == "PETERBILT"
+    assert data["model"] == "388"
+    assert data["model_year"] == "2014"
+    assert data["body_class"] == "Truck-Tractor"
 
 
 def test_remove():
