@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Boolean
 
 from vindecode.database import Base
 
@@ -11,3 +11,4 @@ class DecodedVIN(Base):
     model = Column(String)
     model_year = Column(String)
     body_class = Column(String)
+    cached = Column(Boolean, default=True)

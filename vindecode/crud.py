@@ -8,18 +8,18 @@ def get_decoded_vin(db: Session, vin: str):
     return db.query(models.DecodedVIN).filter(models.DecodedVIN.vin == vin.upper()).first()
 
 
-def create_decoded_vin(db: Session, vin: schemas.DecodedVINCreate):
+def create_decoded_vin(db: Session, vin: schemas.DecodedVIN):
     db_vin = models.DecodedVIN(
         vin=vin.vin,
         make=vin.make,
         model=vin.model,
         model_year=vin.model_year,
-        body_class=vin.body_class
+        body_class=vin.body_class,
     )
     db.add(db_vin)
     db.commit()
     db.refresh(db_vin)
-    return db_vin
+    return vin
 
 
 def delete_decoded_vin(db: Session, vin: str):

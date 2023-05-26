@@ -3,9 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from vindecode.crud import create_decoded_vin
 from vindecode.database import Base
-from vindecode.schemas import DecodedVINCreate
 from vindecode.main import app, get_db
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -41,6 +39,7 @@ def test_lookup_new_vin_success():
     assert data["model"] == "388"
     assert data["model_year"] == "2014"
     assert data["body_class"] == "Truck-Tractor"
+    assert not data["cached"]
 
 
 def test_lookup_cached_vin_success():
@@ -53,6 +52,7 @@ def test_lookup_cached_vin_success():
     assert data["model"] == "388"
     assert data["model_year"] == "2014"
     assert data["body_class"] == "Truck-Tractor"
+    assert data["cached"]
 
 
 def test_remove():

@@ -26,12 +26,14 @@ async def root():
 async def lookup(vin: str, db: Session = Depends(get_db)):
     db_vin = crud.get_decoded_vin(db, vin=vin)
     if db_vin is None:
-        new_db_vin = schemas.DecodedVINCreate(
+        # Call to VIN client goes here.
+        new_db_vin = schemas.DecodedVIN(
             vin=vin,
             make="PETERBILT",
             model="388",
             model_year="2014",
-            body_class="Truck-Tractor"
+            body_class="Truck-Tractor",
+            cached=False
         )
         return crud.create_decoded_vin(db, vin=new_db_vin)
     return db_vin
