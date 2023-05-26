@@ -26,18 +26,6 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture
-def test_db_vins(test_db):
-    db_vin = DecodedVINCreate(
-        vin="1XPWD40X1ED215307",
-        make="PETERBILT",
-        model="388",
-        model_year="2014",
-        body_class="Truck-Tractor"
-    )
-    create_decoded_vin(test_db, db_vin)
-
-
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
