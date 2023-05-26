@@ -15,6 +15,8 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+Base.metadata.create_all(bind=engine)
+
 
 def override_get_db():
     try:
@@ -22,13 +24,6 @@ def override_get_db():
         yield db
     finally:
         db.close()
-
-
-@pytest.fixture
-def test_db():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
@@ -48,7 +43,24 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
-def test_lookup_success(test_db_vins, test_db):
+def test_create_new_vin_success():
+    vin_data = {
+        "vin": "1XPWD40X1ED215307",
+        "make": "PETERBILT",
+        "model": "388",
+        "model_year": "2014",
+        "body_class": "Truck-Tractor"
+    }
+    response = client.post(
+        "/vins/",
+        json=vin_data
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data == vin_data
+
+
+def test_lookup_success():
     vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 200, response.text
@@ -60,44 +72,10 @@ def test_lookup_success(test_db_vins, test_db):
     assert data["body_class"] == "Truck-Tractor"
 
 
-def test_lookup_not_found(test_db):
+def test_lookup_not_found():
     vin = "1XKWDB0X57J211825"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 404
-
-
-def test_create_new_vin_success(test_db):
-    vin_data = {
-            "vin": "1XKWDB0X57J211825",
-            "make": "KENWORTH",
-            "model": "W9 Series",
-            "model_year": "2007",
-            "body_class": "Truck-Tractor"
-        }
-    response = client.post(
-        "/vins/",
-        json=vin_data
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data == vin_data
-
-
-def test_create_existing_vin_success(test_db):
-    vin_data = {
-            "vin": "1XPWD40X1ED215307",
-            "make": "PETERBILT",
-            "model": "388",
-            "model_year": "2014",
-            "body_class": "Truck-Tractor"
-        }
-    response = client.post(
-        "/vins/",
-        json=vin_data
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data == vin_data
 
 
 def test_remove():
