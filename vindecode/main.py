@@ -1,4 +1,9 @@
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from fastapi import Depends, FastAPI
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from vindecode import crud, models, schemas
@@ -24,11 +29,11 @@ async def root():
 
 @app.get("/lookup/{vin}", response_model=schemas.DecodedVIN)
 async def lookup(vin: str, db: Session = Depends(get_db)):
-    db_vin = crud.get_decoded_vin(db, vin=vin)
+    db_vin = crud.get_decoded_vin(db, vin=vin.upper())
     if db_vin is None:
         # Call to VIN client goes here.
         new_db_vin = schemas.DecodedVIN(
-            vin=vin,
+            vin=vin.upper(),
             make="PETERBILT",
             model="388",
             model_year="2014",
@@ -41,9 +46,17 @@ async def lookup(vin: str, db: Session = Depends(get_db)):
 
 @app.delete("/remove/{vin}")
 async def remove(vin: str, db: Session = Depends(get_db)):
-    return crud.delete_decoded_vin(db, vin=vin)
+    return crud.delete_decoded_vin(db, vin=vin.upper())
 
 
 @app.get("/export/")
-async def export():
-    return {"export": "complete"}
+async def export(db: Session = Depends(get_db)):
+    vins = crud.get_all_vins(db)
+    df = pd.read_sql(vins.statement, vins.session.bind)
+    table = pa.Table.from_pandas(df)
+    buffer = pa.BufferOutputStream()
+    pq.write_table(table, buffer)
+    response = StreamingResponse(iter([buffer.getvalue().to_pybytes()]), media_type="application/octet-stream")
+    response.headers["Content-Disposition"] = "attachment; filename=export.parquet"
+
+    return response

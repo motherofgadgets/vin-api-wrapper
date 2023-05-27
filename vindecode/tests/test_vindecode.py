@@ -55,6 +55,12 @@ def test_lookup_cached_vin_success():
     assert data["cached"]
 
 
+def test_export():
+    response = client.get("/export/")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/octet-stream"
+
+
 def test_remove_success():
     vin = "1XPWD40X1ED215307"
     response = client.delete("/remove/{}".format(vin))
@@ -69,11 +75,3 @@ def test_remove_fail():
     vin = "4V4NC9EJXEN171694"
     response = client.delete("/remove/{}".format(vin))
     assert response.status_code == 404
-
-
-def test_export():
-    response = client.get("/export/")
-    assert response.status_code == 200
-    assert response.json() == {
-        "export": "complete"
-    }

@@ -5,7 +5,11 @@ from vindecode import models, schemas
 
 
 def get_decoded_vin(db: Session, vin: str):
-    return db.query(models.DecodedVIN).filter(models.DecodedVIN.vin == vin.upper()).first()
+    return db.query(models.DecodedVIN).filter(models.DecodedVIN.vin == vin).first()
+
+
+def get_all_vins(db: Session):
+    return db.query(models.DecodedVIN)
 
 
 def create_decoded_vin(db: Session, vin: schemas.DecodedVIN):
