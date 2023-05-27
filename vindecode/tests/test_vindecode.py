@@ -55,12 +55,20 @@ def test_lookup_cached_vin_success():
     assert data["cached"]
 
 
-def test_remove():
-    response = client.get("/remove/1XPWD40X1ED215307")
+def test_remove_success():
+    vin = "1XPWD40X1ED215307"
+    response = client.delete("/remove/{}".format(vin))
     assert response.status_code == 200
     assert response.json() == {
-        "remove vin": "1XPWD40X1ED215307"
+        "vin": vin,
+        "deleted": True
     }
+
+
+def test_remove_fail():
+    vin = "4V4NC9EJXEN171694"
+    response = client.delete("/remove/{}".format(vin))
+    assert response.status_code == 404
 
 
 def test_export():

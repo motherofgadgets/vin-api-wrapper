@@ -23,7 +23,7 @@ def create_decoded_vin(db: Session, vin: schemas.DecodedVIN):
 
 
 def delete_decoded_vin(db: Session, vin: str):
-    db_vin = db.get(schemas.DecodedVIN, vin.upper())
+    db_vin = get_decoded_vin(db, vin)
     if not db_vin:
         raise HTTPException(status_code=404, detail="VIN not found.")
     db.delete(db_vin)

@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 
 from vindecode import crud, models, schemas
@@ -39,9 +39,9 @@ async def lookup(vin: str, db: Session = Depends(get_db)):
     return db_vin
 
 
-@app.get("/remove/{vin}")
-async def remove(vin: str):
-    return {"remove vin": vin}
+@app.delete("/remove/{vin}")
+async def remove(vin: str, db: Session = Depends(get_db)):
+    return crud.delete_decoded_vin(db, vin=vin)
 
 
 @app.get("/export/")
