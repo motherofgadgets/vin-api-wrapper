@@ -4,7 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from vindecode.database import Base
-from vindecode.main import app, get_db
+from vindecode.main import app, get_db, get_external_client
+from vindecode.vinextclient import VINTestClient
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -24,7 +25,12 @@ def override_get_db():
         db.close()
 
 
+def override_get_external_client():
+    return VINTestClient()
+
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_external_client] = override_get_external_client
 
 client = TestClient(app)
 
@@ -35,10 +41,10 @@ def test_lookup_new_vin_success():
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["vin"] == "1XPWD40X1ED215307"
-    assert data["make"] == "PETERBILT"
-    assert data["model"] == "388"
-    assert data["model_year"] == "2014"
-    assert data["body_class"] == "Truck-Tractor"
+    assert data["make"] == "TestMake"
+    assert data["model"] == "TestModel"
+    assert data["model_year"] == "TestModelYear"
+    assert data["body_class"] == "TestBodyClass"
     assert not data["cached"]
 
 
@@ -48,10 +54,10 @@ def test_lookup_cached_vin_success():
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["vin"] == "1XPWD40X1ED215307"
-    assert data["make"] == "PETERBILT"
-    assert data["model"] == "388"
-    assert data["model_year"] == "2014"
-    assert data["body_class"] == "Truck-Tractor"
+    assert data["make"] == "TestMake"
+    assert data["model"] == "TestModel"
+    assert data["model_year"] == "TestModelYear"
+    assert data["body_class"] == "TestBodyClass"
     assert data["cached"]
 
 

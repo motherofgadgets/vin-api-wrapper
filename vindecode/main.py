@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from vindecode import crud, models, schemas
 from vindecode.database import SessionLocal, engine
+from vindecode.vinextclient import VINExternalClient
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -22,25 +23,30 @@ def get_db():
         db.close()
 
 
+def get_external_client():
+    return VINExternalClient()
+
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Vin Decode Application!"}
 
 
 @app.get("/lookup/{vin}", response_model=schemas.DecodedVIN)
-async def lookup(vin: str, db: Session = Depends(get_db)):
+async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExternalClient = Depends(get_external_client)):
     db_vin = crud.get_decoded_vin(db, vin=vin.upper())
     if db_vin is None:
-        # Call to VIN client goes here.
-        new_db_vin = schemas.DecodedVIN(
-            vin=vin.upper(),
-            make="PETERBILT",
-            model="388",
-            model_year="2014",
-            body_class="Truck-Tractor",
-            cached=False
-        )
-        return crud.create_decoded_vin(db, vin=new_db_vin)
+        ext_response = ext_client.get_vin(vin)
+        if ext_response["ErrorCode"] == '0':
+            new_db_vin = schemas.DecodedVIN(
+                vin=vin.upper(),
+                make=ext_response["Make"],
+                model=ext_response["Model"],
+                model_year=ext_response["ModelYear"],
+                body_class=ext_response["BodyClass"],
+                cached=False
+            )
+            return crud.create_decoded_vin(db, vin=new_db_vin)
     return db_vin
 
 
