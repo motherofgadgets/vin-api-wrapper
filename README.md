@@ -2,7 +2,13 @@
 
 # Overview
 
-# TODO: Overview goes here
+This project is a FastAPI backend that can decode the following information given a Vehicle Identification Number (VIN):
+- Make
+- Model
+- Model Year
+- Body Class
+
+This API uses a SQLite cache to store results once retrieved from the NHTSA vPIC API.
 
 ---
 
