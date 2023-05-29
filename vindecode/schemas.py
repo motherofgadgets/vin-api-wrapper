@@ -15,6 +15,11 @@ class DecodedVIN(BaseModel):
         orm_mode = True
 
 
+class DeleteVinSuccess(BaseModel):
+    vin: str
+    deleted: bool
+
+
 class VINExternalClientError(BaseModel):
     ErrorCode: Union[str, None] = None
     ErrorText: Union[str, None] = None

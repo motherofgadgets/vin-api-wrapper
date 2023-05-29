@@ -2,7 +2,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
@@ -25,7 +25,7 @@ app = FastAPI()
 @app.exception_handler(VINExternalClientException)
 async def ext_client_exception_handler(request: Request, exc: VINExternalClientException):
     return JSONResponse(
-        status_code=400,
+        status_code=status.HTTP_400_BAD_REQUEST,
         content=jsonable_encoder(exc.content)
     )
 
@@ -47,7 +47,7 @@ async def root():
     return {"message": "Welcome to the Vin Decode Application!"}
 
 
-@app.get("/lookup/{vin}", response_model=schemas.DecodedVIN)
+@app.get("/lookup/{vin}", response_model=schemas.DecodedVIN, responses={400: {"model": schemas.VINExternalClientError}})
 async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExternalClient = Depends(get_external_client)):
     db_vin = crud.get_decoded_vin(db, vin=vin.upper())
     if db_vin is None:
@@ -72,12 +72,12 @@ async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExterna
     return db_vin
 
 
-@app.delete("/remove/{vin}")
+@app.delete("/remove/{vin}", response_model=schemas.DeleteVinSuccess, responses={404: {"detail": "VIN not found."}})
 async def remove(vin: str, db: Session = Depends(get_db)):
     return crud.delete_decoded_vin(db, vin=vin.upper())
 
 
-@app.get("/export/")
+@app.get("/export/", response_class=StreamingResponse)
 async def export(db: Session = Depends(get_db)):
     vins = crud.get_all_vins(db)
     df = pd.read_sql(vins.statement, vins.session.bind)

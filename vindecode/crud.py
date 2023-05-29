@@ -32,4 +32,4 @@ def delete_decoded_vin(db: Session, vin: str):
         raise HTTPException(status_code=404, detail="VIN not found.")
     db.delete(db_vin)
     db.commit()
-    return {"vin": vin, "deleted": True}
+    return schemas.DeleteVinSuccess(vin=vin, deleted=True)
