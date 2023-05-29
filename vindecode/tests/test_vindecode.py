@@ -39,24 +39,24 @@ client = TestClient(app)
 
 
 def test_lookup_new_vin_success():
-    success_vin = {
+    success_response = {
         "ErrorCode": '0',
         "Make": "TestMake",
         "Model": "TestModel",
         "ModelYear": "TestModelYear",
         "BodyClass": "TestBodyClass",
     }
-    ext_test_client.get_vin.return_value = success_vin
+    ext_test_client.get_vin.return_value = success_response
 
     vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["vin"] == vin
-    assert data["make"] == success_vin["Make"]
-    assert data["model"] == success_vin["Model"]
-    assert data["model_year"] == success_vin["ModelYear"]
-    assert data["body_class"] == success_vin["BodyClass"]
+    assert data["make"] == success_response["Make"]
+    assert data["model"] == success_response["Model"]
+    assert data["model_year"] == success_response["ModelYear"]
+    assert data["body_class"] == success_response["BodyClass"]
     assert not data["cached"]
 
 
@@ -72,6 +72,23 @@ def test_lookup_cached_vin_success():
     assert data["body_class"] == "TestBodyClass"
     assert data["cached"]
     ext_test_client.assert_not_called()
+
+
+def test_lookup_invalid_vin():
+    fail_response = {
+        "ErrorCode": "1",
+        "ErrorText": "1 - Check Digit (9th position) does not calculate properly",
+        "AdditionalErrorText": ""
+    }
+    ext_test_client.get_vin.return_value = fail_response
+
+    vin = "19XZE4F96KE027095"
+    response = client.get("/lookup/{}".format(vin))
+    assert response.status_code == 400, response.text
+    data = response.json()
+    assert data["ErrorCode"] == fail_response["ErrorCode"]
+    assert data["ErrorText"] == fail_response["ErrorText"]
+    assert data["AdditionalErrorText"] == fail_response["AdditionalErrorText"]
 
 
 def test_export():
