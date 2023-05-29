@@ -1,7 +1,6 @@
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-
 from fastapi import Depends, FastAPI, Request, status, Path
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse, JSONResponse

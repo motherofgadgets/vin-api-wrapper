@@ -1,8 +1,8 @@
-import pytest
+from unittest.mock import MagicMock
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from unittest.mock import MagicMock
 
 from vindecode.database import Base
 from vindecode.main import app, get_db, get_external_client
