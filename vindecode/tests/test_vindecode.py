@@ -40,7 +40,7 @@ client = TestClient(app)
 
 def test_lookup_new_vin_success():
     success_response = {
-        "ErrorCode": '0',
+        "ErrorCode": "0",
         "Make": "TestMake",
         "Model": "TestModel",
         "ModelYear": "TestModelYear",
@@ -78,7 +78,7 @@ def test_lookup_invalid_vin():
     fail_response = {
         "ErrorCode": "1",
         "ErrorText": "1 - Check Digit (9th position) does not calculate properly",
-        "AdditionalErrorText": ""
+        "AdditionalErrorText": "",
     }
     ext_test_client.get_vin.return_value = fail_response
 
@@ -101,10 +101,7 @@ def test_remove_success():
     vin = "1XPWD40X1ED215307"
     response = client.delete("/remove/{}".format(vin))
     assert response.status_code == 200
-    assert response.json() == {
-        "vin": vin,
-        "deleted": True
-    }
+    assert response.json() == {"vin": vin, "deleted": True}
 
 
 def test_remove_fail():

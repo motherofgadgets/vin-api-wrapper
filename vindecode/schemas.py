@@ -30,6 +30,6 @@ class VINExternalClientError(BaseModel):
             "example": {
                 "ErrorCode": "1",
                 "ErrorText": "1 - Check Digit (9th position) does not calculate properly",
-                "AdditionalErrorText": ""
+                "AdditionalErrorText": "",
             }
         }

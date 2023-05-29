@@ -11,4 +11,6 @@ class VINExternalClient:
             data = response.json()
             return data["Results"][0]
         else:
-            raise HTTPException(status_code=response.status_code, detail=response.json())
+            raise HTTPException(
+                status_code=response.status_code, detail=response.json()
+            )
