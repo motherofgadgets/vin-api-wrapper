@@ -2,7 +2,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from fastapi import Depends, FastAPI, Request, status
+from fastapi import Depends, FastAPI, Request, status, Path
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
@@ -48,7 +48,8 @@ async def root():
 
 
 @app.get("/lookup/{vin}", response_model=schemas.DecodedVIN, responses={400: {"model": schemas.VINExternalClientError}})
-async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExternalClient = Depends(get_external_client)):
+async def lookup(vin: str = Path(min_length=17, max_length=17, regex="^[a-zA-Z0-9]"), db: Session = Depends(get_db),
+                 ext_client: VINExternalClient = Depends(get_external_client)):
     db_vin = crud.get_decoded_vin(db, vin=vin.upper())
     if db_vin is None:
         ext_response = ext_client.get_vin(vin)
@@ -73,7 +74,7 @@ async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExterna
 
 
 @app.delete("/remove/{vin}", response_model=schemas.DeleteVinSuccess, responses={404: {"detail": "VIN not found."}})
-async def remove(vin: str, db: Session = Depends(get_db)):
+async def remove(vin: str = Path(min_length=17, max_length=17, regex="^[a-zA-Z0-9]"), db: Session = Depends(get_db)):
     return crud.delete_decoded_vin(db, vin=vin.upper())
 
 
