@@ -2,10 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from unittest.mock import MagicMock
 
 from vindecode.database import Base
 from vindecode.main import app, get_db, get_external_client
-from vindecode.vinextclient import VINTestClient
+from vindecode.vinextclient import VINExternalClient
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -15,6 +16,8 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
+
+ext_test_client = MagicMock(spec=VINExternalClient)
 
 
 def override_get_db():
@@ -26,7 +29,7 @@ def override_get_db():
 
 
 def override_get_external_client():
-    return VINTestClient()
+    return ext_test_client
 
 
 app.dependency_overrides[get_db] = override_get_db
@@ -36,15 +39,24 @@ client = TestClient(app)
 
 
 def test_lookup_new_vin_success():
+    success_vin = {
+        "ErrorCode": '0',
+        "Make": "TestMake",
+        "Model": "TestModel",
+        "ModelYear": "TestModelYear",
+        "BodyClass": "TestBodyClass",
+    }
+    ext_test_client.get_vin.return_value = success_vin
+
     vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["vin"] == "1XPWD40X1ED215307"
-    assert data["make"] == "TestMake"
-    assert data["model"] == "TestModel"
-    assert data["model_year"] == "TestModelYear"
-    assert data["body_class"] == "TestBodyClass"
+    assert data["vin"] == vin
+    assert data["make"] == success_vin["Make"]
+    assert data["model"] == success_vin["Model"]
+    assert data["model_year"] == success_vin["ModelYear"]
+    assert data["body_class"] == success_vin["BodyClass"]
     assert not data["cached"]
 
 
@@ -59,6 +71,7 @@ def test_lookup_cached_vin_success():
     assert data["model_year"] == "TestModelYear"
     assert data["body_class"] == "TestBodyClass"
     assert data["cached"]
+    ext_test_client.assert_not_called()
 
 
 def test_export():
