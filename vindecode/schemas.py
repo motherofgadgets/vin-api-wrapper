@@ -13,3 +13,18 @@ class DecodedVIN(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class VINExternalClientError(BaseModel):
+    ErrorCode: Union[str, None] = None
+    ErrorText: Union[str, None] = None
+    AdditionalErrorText: Union[str, None] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "ErrorCode": "1",
+                "ErrorText": "1 - Check Digit (9th position) does not calculate properly",
+                "AdditionalErrorText": ""
+            }
+        }

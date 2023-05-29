@@ -2,8 +2,9 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from fastapi import Depends, FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import Depends, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from vindecode import crud, models, schemas
@@ -12,7 +13,21 @@ from vindecode.vinextclient import VINExternalClient
 
 models.Base.metadata.create_all(bind=engine)
 
+
+class VINExternalClientException(Exception):
+    def __init__(self, content: schemas.VINExternalClientError):
+        self.content = content
+
+
 app = FastAPI()
+
+
+@app.exception_handler(VINExternalClientException)
+async def ext_client_exception_handler(request: Request, exc: VINExternalClientException):
+    return JSONResponse(
+        status_code=400,
+        content=jsonable_encoder(exc.content)
+    )
 
 
 def get_db():
@@ -47,6 +62,13 @@ async def lookup(vin: str, db: Session = Depends(get_db), ext_client: VINExterna
                 cached=False
             )
             return crud.create_decoded_vin(db, vin=new_db_vin)
+        else:
+            error_msg = schemas.VINExternalClientError(
+                ErrorCode=ext_response["ErrorCode"],
+                ErrorText=ext_response["ErrorText"],
+                AdditionalErrorText=ext_response["AdditionalErrorText"]
+            )
+            raise VINExternalClientException(error_msg)
     return db_vin
 
 
