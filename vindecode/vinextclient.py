@@ -1,4 +1,5 @@
 import requests
+from fastapi import HTTPException
 
 
 class VINExternalClient:
@@ -6,11 +7,8 @@ class VINExternalClient:
 
     def get_vin(self, vin):
         response = requests.get(url="".join([self.endpoint, vin, "?format=json"]))
-        data = response.json()
-        if response.status_code == 200 and data["Count"] > 0:
+        if response.status_code == 200:
+            data = response.json()
             return data["Results"][0]
-
-
-if __name__ == '__main__':
-    client = VINExternalClient()
-    end_result = client.get_vin("19XZE4F95KE027095")
+        else:
+            raise HTTPException(status_code=response.status_code, detail=response.json())
