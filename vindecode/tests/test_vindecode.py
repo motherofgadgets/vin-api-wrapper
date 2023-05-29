@@ -21,6 +21,10 @@ ext_test_client = MagicMock(spec=VINExternalClient)
 
 
 def override_get_db():
+    """
+    Overrides the app's get_db method to return the test database
+    :return: A database session that is closed when a request is finished.
+    """
     try:
         db = TestingSessionLocal()
         yield db
@@ -29,6 +33,10 @@ def override_get_db():
 
 
 def override_get_external_client():
+    """
+    Overrides the app's get_external_client to return a Mocked HTTP client for testing
+    :return: a Mocked HTTP client
+    """
     return ext_test_client
 
 
@@ -39,6 +47,10 @@ client = TestClient(app)
 
 
 def test_lookup_new_vin_success():
+    """
+    Tests that when the lookup endpoint is given a new VIN, it calls the external client,
+    and responds that the VIN has not been cached.
+    """
     success_response = {
         "ErrorCode": "0",
         "Make": "TestMake",
@@ -61,6 +73,10 @@ def test_lookup_new_vin_success():
 
 
 def test_lookup_cached_vin_success():
+    """
+    Tests that when the lookup endpoint is given a VIN that has previously been cached,
+    it does not the external client, and responds that the VIN has been cached.
+    """
     vin = "1XPWD40X1ED215307"
     response = client.get("/lookup/{}".format(vin))
     assert response.status_code == 200, response.text
@@ -75,6 +91,10 @@ def test_lookup_cached_vin_success():
 
 
 def test_lookup_invalid_vin():
+    """
+    Tests that when the external client responds with status code 200, but an error in the content,
+    the endpoint throws a 400 response with the specified error fields.
+    """
     fail_response = {
         "ErrorCode": "1",
         "ErrorText": "1 - Check Digit (9th position) does not calculate properly",
@@ -92,12 +112,19 @@ def test_lookup_invalid_vin():
 
 
 def test_export():
+    """
+    Tests that the export endpoint returns streaming data
+    """
     response = client.get("/export/")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/octet-stream"
 
 
 def test_remove_success():
+    """
+    Tests that when the remove endpoint is given a VIN that has previously been cached,
+    it successfully deletes that record from the cache
+    """
     vin = "1XPWD40X1ED215307"
     response = client.delete("/remove/{}".format(vin))
     assert response.status_code == 200
@@ -105,6 +132,9 @@ def test_remove_success():
 
 
 def test_remove_fail():
+    """
+    Tests that when the remove endpoint is given a new VIN, it throws a 404 error
+    """
     vin = "4V4NC9EJXEN171694"
     response = client.delete("/remove/{}".format(vin))
     assert response.status_code == 404

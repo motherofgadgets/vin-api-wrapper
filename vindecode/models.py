@@ -4,6 +4,10 @@ from vindecode.database import Base
 
 
 class DecodedVIN(Base):
+    """
+    The data of a decoded VIN as reported from the VIN API
+    """
+
     __tablename__ = "decoded_vins"
 
     vin = Column(String, primary_key=True, index=False)
