@@ -49,4 +49,4 @@ To run unit tests, run:<br>
 Once up and running, you can find full documentation of the API endpoints at the following links:<br>
 Swagger UI: http://127.0.0.1:8000/docs <br>
 ReDoc UI: http://127.0.0.1:8000/redoc <br>
-You can either use curl in a separate console window to make calls to the endpoints, or you can use the Swagger API
+You can either use curl in a separate console window to make calls to the endpoints, or you can use the Swagger or Redoc API
